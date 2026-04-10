@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>FlipScope — Resale Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0b;
+  --surface: #131315;
+  --surface-2: #1a1a1e;
+  --border: #2a2a30;
+  --border-glow: #3d3520;
+  --gold: #c9a84c;
+  --gold-dim: #8a7234;
+  --gold-bright: #e8c55a;
+  --text: #e8e4dc;
+  --text-dim: #7a7670;
+  --text-muted: #4a4640;
+  --red: #c44040;
+  --green: #4a9a5a;
+  --green-bright: #5cba6e;
+  --amber: #d4943a;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:'JetBrains Mono',monospace; min-height:100vh; overflow-x:hidden; }
+body::before { content:''; position:fixed; inset:0; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E"); pointer-events:none; z-index:9999; }
+
+.container { max-width:800px; margin:0 auto; padding:24px 16px; }
+
+/* Header */
+.header { text-align:center; margin-bottom:28px; }
+.header::after { content:''; display:block; width:50%; height:1px; background:linear-gradient(90deg,transparent,var(--gold-dim),transparent); margin:14px auto 0; }
+.logo { font-family:'Playfair Display',serif; font-size:36px; font-weight:900; letter-spacing:3px; background:linear-gradient(135deg,var(--gold-dim),var(--gold-bright),var(--gold)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; text-transform:uppercase; }
+.tagline { font-size:9px; letter-spacing:5px; color:var(--text-muted); text-transform:uppercase; margin-top:4px; }
+
+/* Setup */
+.setup-screen { max-width:460px; margin:60px auto; text-align:center; }
+.setup-box { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:28px 24px; margin-top:24px; text-align:left; }
+.setup-label { font-size:9px; letter-spacing:3px; color:var(--text-dim); text-transform:uppercase; margin-bottom:8px; display:block; }
+.setup-input { width:100%; background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:12px 14px; color:var(--gold-bright); font-family:'JetBrains Mono',monospace; font-size:12px; outline:none; transition:border-color 0.3s; }
+.setup-input:focus { border-color:var(--gold-dim); }
+.setup-input::placeholder { color:var(--text-muted); }
+.setup-hint { font-size:9px; color:var(--text-muted); margin-top:8px; line-height:1.7; }
+.setup-hint a { color:var(--gold-dim); text-decoration:none; }
+.setup-hint a:hover { color:var(--gold-bright); }
+.setup-btn { width:100%; padding:14px; margin-top:16px; background:linear-gradient(135deg,#1a1710,#252015); border:1px solid var(--gold-dim); border-radius:8px; color:var(--gold-bright); font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:2px; text-transform:uppercase; cursor:pointer; transition:all 0.3s; }
+.setup-btn:hover { box-shadow:0 0 24px rgba(201,168,76,0.1); }
+.setup-btn:disabled { opacity:0.4; cursor:not-allowed; }
+.setup-msg { border-radius:8px; padding:10px 14px; margin-top:12px; font-size:10px; display:none; line-height:1.5; }
+.setup-msg.err { background:rgba(196,64,64,0.1); border:1px solid rgba(196,64,64,0.3); color:var(--red); }
+.setup-msg.ok { background:rgba(74,154,90,0.1); border:1px solid rgba(74,154,90,0.3); color:var(--green-bright); }
+.setup-msg.visible { display:block; }
+
+/* Sections */
+.section { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:20px 22px; margin-bottom:16px; transition:border-color 0.3s; }
+.section:hover { border-color:var(--border-glow); }
+.section-label { font-size:9px; letter-spacing:3px; color:var(--text-dim); text-transform:uppercase; margin-bottom:12px; display:flex; align-items:center; gap:6px; }
+.section-label::before { content:'◈'; color:var(--gold-dim); font-size:10px; }
+
+/* Input area */
+.input-row { display:flex; gap:10px; margin-bottom:12px; }
+.photo-btn { width:52px; height:52px; background:var(--surface-2); border:1px dashed var(--border); border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:22px; transition:all 0.2s; flex-shrink:0; }
+.photo-btn:hover { border-color:var(--gold-dim); background:#1e1d1a; }
+.photo-btn.has-photo { border-color:var(--gold); border-style:solid; }
+.text-input { flex:1; background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:14px; color:var(--text); font-family:'JetBrains Mono',monospace; font-size:13px; resize:none; outline:none; transition:border-color 0.3s; min-height:52px; }
+.text-input:focus { border-color:var(--gold-dim); }
+.text-input::placeholder { color:var(--text-muted); font-size:11px; }
+
+/* Photo preview */
+.photo-preview { display:none; margin-bottom:12px; background:var(--bg); border-radius:8px; padding:10px; align-items:center; gap:10px; }
+.photo-preview.visible { display:flex; }
+.photo-preview img { width:48px; height:48px; object-fit:cover; border-radius:6px; border:1px solid var(--border); }
+.photo-preview-info { flex:1; font-size:11px; color:var(--text-dim); }
+.photo-preview-remove { background:none; border:none; color:var(--red); cursor:pointer; font-size:14px; padding:4px 8px; opacity:0.7; }
+.photo-preview-remove:hover { opacity:1; }
+
+/* Condition chips */
+.chips-section { margin-bottom:12px; }
+.chips-label { font-size:8px; letter-spacing:2px; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px; }
+.chips-row { display:flex; flex-wrap:wrap; gap:6px; }
+.chip { padding:6px 12px; background:var(--surface-2); border:1px solid var(--border); border-radius:6px; font-size:10px; color:var(--text-dim); cursor:pointer; font-family:'JetBrains Mono',monospace; transition:all 0.2s; user-select:none; }
+.chip:hover { border-color:var(--gold-dim); color:var(--text); }
+.chip.selected { border-color:var(--gold); color:var(--gold-bright); background:rgba(201,168,76,0.08); }
+
+/* Fees (collapsed) */
+.fees-toggle { cursor:pointer; display:flex; justify-content:space-between; align-items:center; }
+.fees-icon { font-size:10px; color:var(--text-muted); transition:transform 0.3s; }
+.fees-toggle.open .fees-icon { transform:rotate(180deg); }
+.fees-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:12px; }
+.fee-group label { display:block; font-size:8px; letter-spacing:2px; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; }
+.fee-input { width:100%; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px 10px; color:var(--text); font-family:'JetBrains Mono',monospace; font-size:12px; outline:none; }
+.fee-input:focus { border-color:var(--gold-dim); }
+
+/* Buttons */
+.action-row { display:flex; gap:10px; margin-bottom:20px; }
+.search-btn { flex:1; padding:14px; background:linear-gradient(135deg,#1a1710,#252015); border:1px solid var(--gold-dim); border-radius:8px; color:var(--gold-bright); font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:2px; text-transform:uppercase; cursor:pointer; transition:all 0.3s; }
+.search-btn:hover { box-shadow:0 0 24px rgba(201,168,76,0.1); background:linear-gradient(135deg,#252015,#302818); }
+.search-btn:disabled { opacity:0.4; cursor:not-allowed; }
+.reset-btn { padding:14px 20px; background:var(--surface-2); border:1px solid var(--border); border-radius:8px; color:var(--text-dim); font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:1px; text-transform:uppercase; cursor:pointer; transition:all 0.2s; }
+.reset-btn:hover { border-color:var(--red); color:var(--red); }
+
+/* Loading */
+.loading { display:none; margin-bottom:20px; }
+.loading.visible { display:block; }
+.loading-track { height:3px; background:var(--border); border-radius:2px; overflow:hidden; margin-bottom:8px; }
+.loading-fill { height:100%; background:linear-gradient(90deg,var(--gold-dim),var(--gold-bright),var(--gold-dim)); border-radius:2px; width:0%; transition:width 0.4s; }
+.loading-text { font-size:9px; letter-spacing:1px; color:var(--text-dim); }
+.live-timer { font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700; color:var(--gold-bright); letter-spacing:1px; min-width:50px; text-align:right; }
+
+/* Timer badge in results */
+.timer-badge { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; background:var(--surface-2); border:1px solid var(--border); border-radius:5px; font-size:9px; color:var(--text-dim); margin-bottom:14px; }
+.timer-badge-time { color:var(--gold-bright); font-weight:700; }
+.timer-badge-fast { color:var(--green-bright); }
+.timer-badge-ok { color:var(--gold-bright); }
+.timer-badge-slow { color:var(--red); }
+
+/* Error */
+.error-msg { display:none; background:rgba(196,64,64,0.1); border:1px solid rgba(196,64,64,0.3); border-radius:8px; padding:12px 16px; margin-bottom:16px; font-size:11px; color:var(--red); line-height:1.5; }
+.error-msg.visible { display:block; }
+
+/* Results */
+.results { display:none; }
+.results.visible { display:block; }
+.result-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:20px; margin-bottom:16px; }
+.result-header { display:flex; align-items:center; gap:12px; margin-bottom:16px; padding-bottom:14px; border-bottom:1px solid var(--border); }
+.result-icon { width:44px; height:44px; background:var(--surface-2); border:1px solid var(--border); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:20px; }
+.result-name { font-family:'Playfair Display',serif; font-size:18px; font-weight:700; }
+.result-meta { font-size:8px; letter-spacing:2px; color:var(--text-dim); text-transform:uppercase; margin-top:2px; }
+.price-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:16px; }
+.price-card { background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:14px; text-align:center; }
+.price-label { font-size:8px; letter-spacing:2px; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; }
+.price-amount { font-family:'Playfair Display',serif; font-size:22px; font-weight:700; }
+.price-low { color:var(--green-bright); }
+.price-mid { color:var(--gold-bright); }
+.price-high { color:var(--text); }
+.price-sub { font-size:9px; color:var(--text-muted); margin-top:3px; }
+.verdict { background:var(--bg); border-radius:8px; padding:18px; text-align:center; position:relative; overflow:hidden; }
+.verdict::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+.verdict.good::before { background:linear-gradient(90deg,transparent,var(--green-bright),transparent); }
+.verdict.warn::before { background:linear-gradient(90deg,transparent,var(--amber),transparent); }
+.verdict-label { font-size:9px; letter-spacing:3px; color:var(--text-dim); text-transform:uppercase; margin-bottom:8px; }
+.verdict-price { font-family:'Playfair Display',serif; font-size:36px; font-weight:900; margin-bottom:4px; }
+.verdict-price.good { color:var(--green-bright); }
+.verdict-price.warn { color:var(--amber); }
+.verdict-detail { font-size:10px; color:var(--text-dim); line-height:1.7; }
+.sources { margin-top:14px; padding-top:14px; border-top:1px solid var(--border); }
+.sources-label { font-size:8px; letter-spacing:2px; color:var(--text-muted); text-transform:uppercase; margin-bottom:8px; }
+.source-row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--surface-2); font-size:11px; }
+.source-name { color:var(--text-dim); }
+.source-price { color:var(--text); font-weight:500; }
+.source-note { color:var(--text-muted); font-size:9px; }
+.result-notes { margin-top:12px; padding:10px; background:var(--bg); border-radius:6px; font-size:10px; color:var(--text-dim); line-height:1.7; }
+
+/* Trade-in */
+.trade-in-box { margin-top:12px; padding:14px; background:var(--bg); border:1px solid var(--border); border-radius:8px; text-align:center; }
+.trade-in-label { font-size:8px; letter-spacing:2px; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px; }
+.trade-in-range { font-family:'Playfair Display',serif; font-size:22px; font-weight:700; color:var(--amber); }
+.trade-in-note { font-size:9px; color:var(--text-dim); margin-top:6px; line-height:1.5; }
+
+/* History */
+.history-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; cursor:pointer; }
+.history-bar-label { font-size:9px; letter-spacing:2px; color:var(--text-dim); text-transform:uppercase; }
+.history-bar-count { font-size:9px; color:var(--text-muted); }
+.history-panel { display:none; max-height:260px; overflow-y:auto; }
+.history-panel.visible { display:block; }
+.history-item { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--surface-2); font-size:11px; cursor:pointer; transition:opacity 0.2s; }
+.history-item:hover { opacity:0.7; }
+.history-item-name { color:var(--text); flex:1; }
+.history-item-price { color:var(--gold-bright); margin:0 12px; }
+.history-item-date { color:var(--text-muted); font-size:9px; }
+.history-clear { background:none; border:1px solid var(--border); border-radius:4px; padding:2px 8px; font-size:8px; color:var(--text-muted); cursor:pointer; font-family:'JetBrains Mono',monospace; letter-spacing:1px; text-transform:uppercase; }
+.history-clear:hover { border-color:var(--red); color:var(--red); }
+
+/* Key bar */
+.key-bar { display:flex; justify-content:flex-end; gap:8px; align-items:center; margin-bottom:12px; }
+.key-status { font-size:8px; letter-spacing:1px; color:var(--green); display:flex; align-items:center; gap:4px; }
+.key-status::before { content:''; width:5px; height:5px; border-radius:50%; background:var(--green); }
+.key-change { background:none; border:1px solid var(--border); border-radius:4px; padding:2px 8px; font-size:8px; color:var(--text-muted); cursor:pointer; font-family:'JetBrains Mono',monospace; }
+.key-change:hover { border-color:var(--gold-dim); color:var(--text-dim); }
+
+.disclaimer { margin-top:32px; text-align:center; font-size:8px; letter-spacing:1px; color:var(--text-muted); padding:16px; border-top:1px solid var(--border); line-height:1.8; }
+.disclaimer a { color:var(--text-muted); }
+input[type="file"] { display:none; }
+
+@media(max-width:600px) {
+  .price-grid { grid-template-columns:1fr; }
+  .fees-grid { grid-template-columns:1fr; }
+  .logo { font-size:28px; }
+  .verdict-price { font-size:28px; }
+  .action-row { flex-direction:column; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== SETUP SCREEN ===== -->
+<div id="setupScreen" class="setup-screen">
+  <div class="logo">FlipScope</div>
+  <div class="tagline">Resale Intelligence Engine</div>
+  <div class="setup-box">
+    <label class="setup-label">Your Name</label>
+    <input class="setup-input" id="nameInput" type="text" placeholder="What should we call you?" autocomplete="off" spellcheck="false" style="color:var(--text);margin-bottom:16px;">
+    <label class="setup-label">Anthropic API Key</label>
+    <input class="setup-input" id="apiKeyInput" type="password" placeholder="sk-ant-api03-..." autocomplete="off" spellcheck="false">
+    <div class="setup-hint">
+      Get your key at <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a>
+      &middot; Stored locally, never shared &middot; ~$0.01/lookup
+    </div>
+    <button class="setup-btn" id="setupBtn" onclick="validateKey()">◈ Connect</button>
+    <div class="setup-msg err" id="setupErr"></div>
+    <div class="setup-msg ok" id="setupOk"></div>
+  </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="app" class="container" style="display:none;">
+
+  <div class="header">
+    <div class="logo">FlipScope</div>
+    <div class="tagline" id="greeting">Resale Intelligence Engine</div>
+  </div>
+
+  <div class="key-bar">
+    <span class="key-status">Connected</span>
+    <button class="key-change" onclick="changeKey()">Change Key</button>
+  </div>
+
+  <!-- Product Input -->
+  <div class="section">
+    <div class="section-label">Product</div>
+    <div class="input-row">
+      <div class="photo-btn" id="photoBtn" onclick="document.getElementById('photoInput').click()" title="Upload or take photo">📷</div>
+      <textarea class="text-input" id="textInput" placeholder="What are you looking at? Type a name or add a photo..." rows="1"></textarea>
+    </div>
+    <div class="photo-preview" id="photoPreview">
+      <img id="previewImg" src="" alt="">
+      <div class="photo-preview-info" id="previewInfo"></div>
+      <button class="photo-preview-remove" onclick="removePhoto()">✕</button>
+    </div>
+    <input type="file" id="photoInput" accept="image/*" onchange="handlePhoto(event)">
+
+    <!-- Condition -->
+    <div class="chips-section">
+      <div class="chips-label">Condition</div>
+      <div class="chips-row" id="conditionChips">
+        <div class="chip" data-value="New / Sealed" onclick="toggleChip(this,'condition')">New / Sealed</div>
+        <div class="chip" data-value="Open Box" onclick="toggleChip(this,'condition')">Open Box</div>
+        <div class="chip" data-value="Like New" onclick="toggleChip(this,'condition')">Like New</div>
+        <div class="chip" data-value="Used - Good" onclick="toggleChip(this,'condition')">Used - Good</div>
+        <div class="chip" data-value="Used - Fair" onclick="toggleChip(this,'condition')">Used - Fair</div>
+        <div class="chip" data-value="For Parts" onclick="toggleChip(this,'condition')">For Parts</div>
+      </div>
+    </div>
+
+    <!-- Details -->
+    <div class="chips-section">
+      <div class="chips-label">Details</div>
+      <div class="chips-row" id="detailChips">
+        <div class="chip" data-value="With Original Box" onclick="toggleChip(this,'detail')">With Box</div>
+        <div class="chip" data-value="With Tags" onclick="toggleChip(this,'detail')">With Tags</div>
+        <div class="chip" data-value="Includes Battery" onclick="toggleChip(this,'detail')">Battery</div>
+        <div class="chip" data-value="Includes Charger" onclick="toggleChip(this,'detail')">Charger</div>
+        <div class="chip" data-value="Includes Manual" onclick="toggleChip(this,'detail')">Manual</div>
+        <div class="chip" data-value="Missing Parts" onclick="toggleChip(this,'detail')">Missing Parts</div>
+        <div class="chip" data-value="Unopened" onclick="toggleChip(this,'detail')">Unopened</div>
+        <div class="chip" data-value="Complete Set" onclick="toggleChip(this,'detail')">Complete Set</div>
+        <div class="chip" data-value="Limited Edition" onclick="toggleChip(this,'detail')">Limited Edition</div>
+        <div class="chip" data-value="Vintage" onclick="toggleChip(this,'detail')">Vintage</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fees -->
+  <div class="section">
+    <div class="fees-toggle" id="feesToggle" onclick="toggleFees()">
+      <div class="section-label" style="margin-bottom:0">Selling Fees</div>
+      <span class="fees-icon">▼</span>
+    </div>
+    <div id="feesBody" style="display:none;">
+      <div class="fees-grid">
+        <div class="fee-group"><label>Platform %</label><input class="fee-input" type="number" id="platformFee" value="12.9" step="0.1"></div>
+        <div class="fee-group"><label>Shipping $</label><input class="fee-input" type="number" id="shippingCost" value="8" step="0.5"></div>
+        <div class="fee-group"><label>Tax %</label><input class="fee-input" type="number" id="taxRate" value="0" step="0.1"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="action-row">
+    <button class="search-btn" id="searchBtn" onclick="runSearch()">🐋 &nbsp; <span id="btnText">Spin the Whale!</span> &nbsp; 🐋</button>
+    <button class="reset-btn" onclick="resetAll()">Reset</button>
+  </div>
+
+  <div class="error-msg" id="errorMsg"></div>
+  <div class="loading" id="loading">
+    <div class="loading-track"><div class="loading-fill" id="loadingFill"></div></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div class="loading-text" id="loadingText"></div>
+      <div class="live-timer" id="liveTimer">0.0s</div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="results" id="results"></div>
+
+  <!-- History -->
+  <div class="section">
+    <div class="history-bar" onclick="toggleHistory()">
+      <span class="history-bar-label">Search History</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="history-bar-count" id="historyCount">0</span>
+        <button class="history-clear" onclick="event.stopPropagation();clearHistory()">Clear</button>
+      </div>
+    </div>
+    <div class="history-panel" id="historyPanel"></div>
+  </div>
+
+  <div class="disclaimer">
+    FlipScope by Switch Studio &middot; Prices are AI-generated estimates, not guarantees. Always verify before purchasing.<br>
+    <a href="/terms">Terms</a> &middot; <a href="/privacy">Privacy</a>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CONFIG — Replace PROXY_URL when Cloudflare Worker is deployed
+// If PROXY_URL is set, API key setup is bypassed
+// ============================================================
+const PROXY_URL = ''; // e.g. 'https://flipscope-api.you.workers.dev'
+const HISTORY_KEY = 'flipscope_history';
+let API_KEY = '';
+
+// ===== SETUP =====
+function getKey(){try{return localStorage.getItem('flipscope_key')||'';}catch(e){return '';}}
+function saveKey(k){try{localStorage.setItem('flipscope_key',k);}catch(e){}}
+function getName(){try{return localStorage.getItem('flipscope_name')||'';}catch(e){return '';}}
+function saveName(n){try{localStorage.setItem('flipscope_name',n);}catch(e){}}
+let userName='';
+
+async function validateKey(){
+  const inp=document.getElementById('apiKeyInput'),btn=document.getElementById('setupBtn');
+  const err=document.getElementById('setupErr'),ok=document.getElementById('setupOk');
+  const nameVal=document.getElementById('nameInput').value.trim();
+  err.classList.remove('visible');ok.classList.remove('visible');
+  if(!nameVal){err.textContent='Tell us your name first!';err.classList.add('visible');return;}
+  const k=inp.value.trim();
+  if(!k||!k.startsWith('sk-ant-')){err.textContent='Key must start with sk-ant-';err.classList.add('visible');return;}
+  btn.disabled=true;btn.textContent='Checking...';
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:10,messages:[{role:'user',content:'OK'}]})});
+    if(r.ok){API_KEY=k;saveKey(k);userName=nameVal;saveName(nameVal);ok.textContent='Welcome, '+userName+'!';ok.classList.add('visible');setTimeout(launch,600);}
+    else{const d=await r.json().catch(()=>({}));err.textContent=d.error?.message||'HTTP '+r.status;err.classList.add('visible');}
+  }catch(e){err.textContent='Connection failed: '+e.message;err.classList.add('visible');}
+  btn.disabled=false;btn.textContent='◈ Connect';
+}
+
+function launch(){
+  document.getElementById('setupScreen').style.display='none';
+  document.getElementById('app').style.display='block';
+  if(!userName)userName=getName()||'Friend';
+  document.getElementById('greeting').textContent='Let\'s flip, '+userName+'.';
+  document.getElementById('btnText').textContent='OK, '+userName+', Spin the Whale!';
+  loadHistory();
+}
+
+function changeKey(){
+  API_KEY='';try{localStorage.removeItem('flipscope_key');}catch(e){}
+  document.getElementById('app').style.display='none';
+  document.getElementById('setupScreen').style.display='block';
+  document.getElementById('apiKeyInput').value='';
+  document.getElementById('nameInput').value=userName||'';
+  document.getElementById('setupErr').classList.remove('visible');
+  document.getElementById('setupOk').classList.remove('visible');
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  if(PROXY_URL){userName=getName()||'Friend';launch();return;}
+  const k=getKey();
+  if(k){API_KEY=k;userName=getName()||'Friend';launch();}
+  document.getElementById('apiKeyInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')validateKey();});
+  document.getElementById('nameInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('apiKeyInput').focus();});
+  // Pre-fill name if returning
+  const storedName=getName();
+  if(storedName&&document.getElementById('nameInput'))document.getElementById('nameInput').value=storedName;
+});
+
+// ===== API =====
+async function callAPI(body){
+  const url=PROXY_URL||'https://api.anthropic.com/v1/messages';
+  const headers={'Content-Type':'application/json'};
+  if(!PROXY_URL){headers['x-api-key']=API_KEY;headers['anthropic-version']='2023-06-01';headers['anthropic-dangerous-direct-browser-access']='true';}
+  const r=await fetch(url,{method:'POST',headers,body:JSON.stringify(body)});
+  if(!r.ok){const d=await r.json().catch(()=>({}));if(r.status===401&&!PROXY_URL)changeKey();throw new Error(d.error?.message||'HTTP '+r.status);}
+  const data=await r.json();
+  return data.content?.map(c=>c.type==='text'?c.text:'').filter(Boolean).join('\n')||'';
+}
+
+// ===== STATE =====
+let uploadedBase64=null,uploadedMediaType=null,isSearching=false;
+let selectedCondition='',selectedDetails=[];
+
+// ===== CHIPS =====
+function toggleChip(el,group){
+  if(group==='condition'){
+    const was=el.classList.contains('selected');
+    document.querySelectorAll('#conditionChips .chip').forEach(c=>c.classList.remove('selected'));
+    if(!was)el.classList.add('selected');
+    selectedCondition=el.classList.contains('selected')?el.dataset.value:'';
+  }else{
+    el.classList.toggle('selected');
+    selectedDetails=Array.from(document.querySelectorAll('#detailChips .chip.selected')).map(c=>c.dataset.value);
+  }
+}
+
+function getChipContext(){
+  let parts=[];
+  if(selectedCondition)parts.push('Condition: '+selectedCondition);
+  if(selectedDetails.length)parts.push(selectedDetails.join(', '));
+  return parts.join('. ');
+}
+
+// ===== PHOTO =====
+function handlePhoto(e){const f=e.target.files[0];if(f)processPhoto(f);}
+function processPhoto(file){
+  const r=new FileReader();
+  r.onload=e=>{
+    uploadedBase64=e.target.result.split(',')[1];
+    uploadedMediaType=file.type||'image/jpeg';
+    document.getElementById('previewImg').src=e.target.result;
+    document.getElementById('previewInfo').textContent=(file.name||'Photo')+' · '+(file.size/1024).toFixed(0)+'KB';
+    document.getElementById('photoPreview').classList.add('visible');
+    document.getElementById('photoBtn').classList.add('has-photo');
+  };
+  r.readAsDataURL(file);
+}
+function removePhoto(){
+  uploadedBase64=null;uploadedMediaType=null;
+  document.getElementById('photoPreview').classList.remove('visible');
+  document.getElementById('photoBtn').classList.remove('has-photo');
+  document.getElementById('photoInput').value='';
+}
+
+// ===== PASTE =====
+document.addEventListener('paste',e=>{
+  if(document.getElementById('app').style.display==='none')return;
+  const a=document.activeElement;
+  if(a&&a.tagName==='TEXTAREA')return;
+  for(let i of e.clipboardData.items){
+    if(i.type.startsWith('image/')){e.preventDefault();processPhoto(i.getAsFile());return;}
+  }
+  const t=e.clipboardData.getData('text/plain');
+  if(t&&t.length>2){e.preventDefault();document.getElementById('textInput').value=t;}
+});
+
+// ===== FEES =====
+function toggleFees(){const b=document.getElementById('feesBody');b.style.display=b.style.display==='none'?'block':'none';document.getElementById('feesToggle').classList.toggle('open');}
+
+// ===== LOADING / ERROR =====
+function showError(m){const el=document.getElementById('errorMsg');el.textContent=m;el.classList.add('visible');}
+function hideError(){document.getElementById('errorMsg').classList.remove('visible');}
+function showLoading(m){hideError();const el=document.getElementById('loading');el.classList.add('visible');document.getElementById('loadingFill').style.width='5%';document.getElementById('loadingText').textContent=m;}
+function setLoading(m,p){document.getElementById('loadingFill').style.width=p+'%';document.getElementById('loadingText').textContent=m;}
+function hideLoading(){document.getElementById('loading').classList.remove('visible');}
+
+// ===== TIMER =====
+let timerInterval=null,timerStart=0;
+function startTimer(){
+  timerStart=performance.now();
+  const el=document.getElementById('liveTimer');
+  el.textContent='0.0s';
+  timerInterval=setInterval(()=>{el.textContent=((performance.now()-timerStart)/1000).toFixed(1)+'s';},100);
+}
+function stopTimer(){
+  if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
+  const elapsed=(performance.now()-timerStart)/1000;
+  document.getElementById('liveTimer').textContent=elapsed.toFixed(1)+'s';
+  return elapsed;
+}
+
+// ===== TELEMETRY =====
+// Lightweight — captures AFTER search completes, never blocks the hot path
+const TELEM_KEY='flipscope_telemetry';
+function getTelemetry(){try{return JSON.parse(localStorage.getItem(TELEM_KEY)||'[]');}catch(e){return[];}}
+function saveTelemetry(log){try{if(log.length>500)log=log.slice(-500);localStorage.setItem(TELEM_KEY,JSON.stringify(log));}catch(e){}}
+
+function logSearch(entry){
+  // Fire-and-forget — runs after results are already displayed
+  setTimeout(()=>{const log=getTelemetry();log.push(entry);saveTelemetry(log);},0);
+}
+
+function getInputType(){
+  if(uploadedBase64&&document.getElementById('textInput').value.trim())return 'photo+text';
+  if(uploadedBase64)return 'photo';
+  return 'text';
+}
+
+function estimateImageMeta(){
+  if(!uploadedBase64)return null;
+  const sizeKB=Math.round(uploadedBase64.length*3/4/1024);
+  return {size_kb:sizeKB,media_type:uploadedMediaType||'unknown'};
+}
+
+// ===== SEARCH =====
+async function runSearch(){
+  if(isSearching)return;isSearching=true;hideError();
+  document.getElementById('results').classList.remove('visible');
+  let query='';
+  const text=document.getElementById('textInput').value.trim();
+  const chips=getChipContext();
+  const inputType=getInputType();
+  const imgMeta=estimateImageMeta();
+
+  startTimer();
+  let tVision=0,tPricing=0;
+
+  if(uploadedBase64){
+    showLoading('Identifying product...');
+    const vStart=performance.now();
+    try{
+      const visionText=await callAPI({model:'claude-sonnet-4-20250514',max_tokens:500,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:uploadedMediaType,data:uploadedBase64}},{type:'text',text:'Identify this product for resale lookup. Return ONLY: brand, product name, model, size/variant if visible.'}]}]});
+      query=visionText||'Unknown product';
+      tVision=(performance.now()-vStart)/1000;
+      setLoading('Identified: '+query,25);
+    }catch(err){stopTimer();showError('Image ID failed: '+err.message);isSearching=false;hideLoading();return;}
+    if(text)query+='. '+text;
+  }else if(text){
+    query=text;
+  }
+
+  if(!query){stopTimer();showError('Type a product name or upload a photo.');isSearching=false;return;}
+  if(chips)query+='. '+chips;
+
+  document.getElementById('searchBtn').disabled=true;
+  showLoading('Researching: '+query.substring(0,50)+'...');
+
+  let data=null,sourceCount=0,err=null;
+  try{
+    const prompt='You are a resale price research engine. Product to research: "'+query+'"\nSearch for CURRENT real pricing from eBay sold listings, StockX, Mercari, Poshmark, GOAT, Facebook Marketplace. Also estimate the trade-in value — check what platforms like Back Market, Gazelle, Swappa, Decluttr, ItsWorthMore, BuyBackWorld, SellCell, ecoATM, and GameStop would offer for this item. Give accurate market data.\nRespond ONLY in valid JSON (no markdown, no backticks):\n{"product_name":"exact name","category":"category","icon":"single emoji","condition":"'+(selectedCondition||'assumed')+'","resale_low":0,"resale_median":0,"resale_high":0,"trade_in_low":0,"trade_in_high":0,"trade_in_note":"which platforms offer trade-in and estimated range","sources":[{"platform":"name","price":0,"note":"brief"}],"confidence":"high/medium/low","notes":"market notes"}';
+
+    const body={model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]};
+    body.tools=[{type:'web_search_20250305',name:'web_search'}];
+
+    setLoading('Searching marketplaces...',50);
+    const pStart=performance.now();
+    const raw=await callAPI(body);
+    tPricing=(performance.now()-pStart)/1000;
+    setLoading('Calculating...',90);
+
+    if(!raw)throw new Error('Empty response');
+    const clean=raw.replace(/```json|```/g,'').trim();
+    try{const m=clean.match(/\{[\s\S]*\}/);data=JSON.parse(m?m[0]:clean);}
+    catch(e){data={product_name:query,category:'Unknown',icon:'📦',condition:selectedCondition||'Unknown',resale_low:0,resale_median:0,resale_high:0,sources:[],confidence:'low',notes:'Could not parse. Raw: '+raw.substring(0,120)};}
+
+    sourceCount=(data.sources||[]).length;
+  }catch(e){err=e.message;showError('Search failed: '+e.message);}
+
+  const totalTime=stopTimer();
+
+  if(data){
+    data._timing={total:+totalTime.toFixed(2),vision:+tVision.toFixed(2),pricing:+tPricing.toFixed(2)};
+    renderResults(data);
+    addToHistory(data);
+  }
+
+  // Telemetry — fire after render, never blocks UI
+  logSearch({
+    ts:new Date().toISOString(),
+    total_s:+totalTime.toFixed(2),
+    vision_s:+tVision.toFixed(2),
+    pricing_s:+tPricing.toFixed(2),
+    input_type:inputType,
+    img:imgMeta,
+    query_len:query.length,
+    condition:selectedCondition||null,
+    detail_count:selectedDetails.length,
+    source_count:sourceCount,
+    confidence:data?.confidence||null,
+    category:data?.category||null,
+    product:data?.product_name||query.substring(0,60),
+    error:err||null
+  });
+
+  document.getElementById('searchBtn').disabled=false;
+  isSearching=false;hideLoading();
+}
+
+// ===== RENDER =====
+function renderResults(d){
+  const pf=parseFloat(document.getElementById('platformFee').value)||0;
+  const ship=parseFloat(document.getElementById('shippingCost').value)||0;
+  const sell=d.resale_median||0;
+  const net=sell*(1-pf/100)-ship;
+  const netL=(d.resale_low||0)*(1-pf/100)-ship;
+  const netH=(d.resale_high||0)*(1-pf/100)-ship;
+  const tradeL=d.trade_in_low||0;
+  const tradeH=d.trade_in_high||0;
+  const hasTrade=tradeL>0||tradeH>0;
+  const t=d._timing||{};
+  const totalSec=t.total||0;
+  const speedClass=totalSec<6?'timer-badge-fast':totalSec<12?'timer-badge-ok':'timer-badge-slow';
+  const timerHTML=totalSec?`<div class="timer-badge">⏱ <span class="timer-badge-time ${speedClass}">${totalSec.toFixed(1)}s</span>${t.vision?(' · vision '+t.vision.toFixed(1)+'s'):''}${t.pricing?(' · pricing '+t.pricing.toFixed(1)+'s'):''}</div>`:'';
+
+  const r=document.getElementById('results');
+  r.innerHTML=`<div class="result-card">
+    ${timerHTML}
+    <div class="result-header"><div class="result-icon">${d.icon||'📦'}</div><div><div class="result-name">${d.product_name}</div><div class="result-meta">${d.category} · ${d.condition} · ${d.confidence} confidence${d.lookup_count>1?' · x'+d.lookup_count:''}</div></div></div>
+    <div class="price-grid">
+      <div class="price-card"><div class="price-label">Low</div><div class="price-amount price-low">$${(d.resale_low||0).toFixed(0)}</div><div class="price-sub">Net: $${Math.max(0,netL).toFixed(0)}</div></div>
+      <div class="price-card"><div class="price-label">Median</div><div class="price-amount price-mid">$${sell.toFixed(0)}</div><div class="price-sub">Net: $${Math.max(0,net).toFixed(0)}</div></div>
+      <div class="price-card"><div class="price-label">High</div><div class="price-amount price-high">$${(d.resale_high||0).toFixed(0)}</div><div class="price-sub">Net: $${Math.max(0,netH).toFixed(0)}</div></div>
+    </div>
+    <div class="verdict ${net>0?'good':'warn'}">
+      <div class="verdict-label">Net after fees &amp; shipping</div>
+      <div class="verdict-price ${net>0?'good':'warn'}">$${Math.max(0,net).toFixed(2)}</div>
+      <div class="verdict-detail">Median $${sell.toFixed(0)} − ${pf}% fees − $${ship.toFixed(0)} shipping</div>
+    </div>
+    ${hasTrade?`<div class="trade-in-box">
+      <div class="trade-in-label">Trade-In Value</div>
+      <div class="trade-in-range">$${tradeL.toFixed(0)}${tradeH>tradeL?' – $'+tradeH.toFixed(0):''}</div>
+      ${d.trade_in_note?'<div class="trade-in-note">'+d.trade_in_note+'</div>':''}
+    </div>`:''}
+    ${(d.sources||[]).length?`<div class="sources"><div class="sources-label">Sources</div>${d.sources.map(s=>`<div class="source-row"><span class="source-name">${s.platform}</span><span class="source-price">$${s.price?s.price.toFixed(0):'—'}</span><span class="source-note">${s.note||''}</span></div>`).join('')}</div>`:''}
+    ${d.notes?`<div class="result-notes"><strong style="color:var(--gold-dim)">◈</strong> ${d.notes}</div>`:''}
+  </div>`;
+  r.classList.add('visible');
+  r.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ===== HISTORY =====
+let historyDB=[];
+function loadHistory(){try{historyDB=JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]');}catch(e){historyDB=[];}updateHistoryCount();}
+function saveHistory(){try{localStorage.setItem(HISTORY_KEY,JSON.stringify(historyDB));}catch(e){}}
+function updateHistoryCount(){document.getElementById('historyCount').textContent=historyDB.length+' searches';}
+function addToHistory(d){
+  if(!d||!d.product_name)return;
+  const n=d.product_name.toLowerCase().trim().replace(/[^a-z0-9 ]/g,'');
+  const now=new Date().toISOString();
+  const i=historyDB.findIndex(h=>{const x=(h.product_name||'').toLowerCase().trim().replace(/[^a-z0-9 ]/g,'');return x===n||(x.includes(n)||n.includes(x));});
+  if(i>=0){const e=historyDB[i];e.lookup_count=(e.lookup_count||1)+1;e.last_lookup=now;e.resale_low=d.resale_low||e.resale_low;e.resale_median=d.resale_median||e.resale_median;e.resale_high=d.resale_high||e.resale_high;}
+  else{historyDB.unshift({...d,lookup_count:1,last_lookup:now});}
+  if(historyDB.length>200)historyDB.length=200;
+  saveHistory();updateHistoryCount();
+}
+function toggleHistory(){
+  const p=document.getElementById('historyPanel');
+  if(p.classList.contains('visible')){p.classList.remove('visible');return;}
+  p.classList.add('visible');renderHistory();
+}
+function renderHistory(){
+  const p=document.getElementById('historyPanel');
+  if(!historyDB.length){p.innerHTML='<div style="padding:12px;text-align:center;font-size:10px;color:var(--text-muted)">No searches yet</div>';return;}
+  p.innerHTML=historyDB.map((h,i)=>`<div class="history-item" onclick="loadHistory(${i})"><span class="history-item-name">${h.icon||'📦'} ${h.product_name}${h.lookup_count>1?' (x'+h.lookup_count+')':''}</span><span class="history-item-price">$${(h.resale_median||0).toFixed(0)}</span><span class="history-item-date">${h.last_lookup?new Date(h.last_lookup).toLocaleDateString():''}</span></div>`).join('');
+}
+function loadHistory(i){if(historyDB[i]){renderResults(historyDB[i]);document.getElementById('historyPanel').classList.remove('visible');}}
+function clearHistory(){if(confirm('Clear all history?')){historyDB=[];saveHistory();renderHistory();updateHistoryCount();}}
+
+// ===== RESET =====
+function resetAll(){
+  uploadedBase64=null;uploadedMediaType=null;isSearching=false;
+  selectedCondition='';selectedDetails=[];
+  document.querySelectorAll('.chip.selected').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('textInput').value='';
+  document.getElementById('photoPreview').classList.remove('visible');
+  document.getElementById('photoBtn').classList.remove('has-photo');
+  document.getElementById('photoInput').value='';
+  document.getElementById('results').classList.remove('visible');
+  document.getElementById('results').innerHTML='';
+  document.getElementById('loading').classList.remove('visible');
+  document.getElementById('searchBtn').disabled=false;
+  hideError();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('textInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();runSearch();}});
+  loadHistory();
+});
+</script>
+</body>
+</html>
