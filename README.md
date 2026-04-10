@@ -85,4 +85,4 @@ Proprietary — Switch Studio
 
 ---
 
-Built by Franky @ [Switch Studio](https://switchstudio.com)
+Built by Franky @ [Switch Studio](http://ryankramerart.com)
