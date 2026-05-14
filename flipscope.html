@@ -231,15 +231,20 @@ input[type="file"] { display:none; }
   <div class="section">
     <div class="section-label">Product</div>
     <div class="input-row">
-      <div class="photo-btn" id="photoBtn" onclick="document.getElementById('photoInput').click()" title="Upload or take photo">📷</div>
+      <div class="photo-btn" id="cameraBtn" onclick="document.getElementById('cameraInput').click()" title="Take photo">📷</div>
+      <div class="photo-btn" id="uploadBtn" onclick="document.getElementById('galleryInput').click()" title="Upload from gallery" style="font-size:18px;">📁</div>
       <textarea class="text-input" id="textInput" placeholder="What are you looking at? Type a name or add a photo..." rows="1"></textarea>
     </div>
+
     <div class="photo-preview" id="photoPreview">
       <img id="previewImg" src="" alt="">
       <div class="photo-preview-info" id="previewInfo"></div>
       <button class="photo-preview-remove" onclick="removePhoto()">✕</button>
     </div>
-    <input type="file" id="photoInput" accept="image/*" onchange="handlePhoto(event)">
+    <!-- Camera input — forces native camera on mobile -->
+    <input type="file" id="cameraInput" accept="image/*" capture="environment" onchange="handlePhoto(event)">
+    <!-- Gallery input — opens file picker / photo gallery -->
+    <input type="file" id="galleryInput" accept="image/*" onchange="handlePhoto(event)">
 
     <!-- Condition -->
     <div class="chips-section">
@@ -424,22 +429,50 @@ function getChipContext(){
 // ===== PHOTO =====
 function handlePhoto(e){const f=e.target.files[0];if(f)processPhoto(f);}
 function processPhoto(file){
-  const r=new FileReader();
-  r.onload=e=>{
-    uploadedBase64=e.target.result.split(',')[1];
-    uploadedMediaType=file.type||'image/jpeg';
-    document.getElementById('previewImg').src=e.target.result;
-    document.getElementById('previewInfo').textContent=(file.name||'Photo')+' · '+(file.size/1024).toFixed(0)+'KB';
+  const img=new Image();
+  const url=URL.createObjectURL(file);
+  img.onload=()=>{
+    URL.revokeObjectURL(url);
+    const MAX=1600;
+    let w=img.width, h=img.height;
+    if(w>MAX||h>MAX){
+      if(w>h){h=Math.round(h*(MAX/w));w=MAX;}
+      else{w=Math.round(w*(MAX/h));h=MAX;}
+    }
+    const canvas=document.createElement('canvas');
+    canvas.width=w; canvas.height=h;
+    const ctx=canvas.getContext('2d');
+    ctx.drawImage(img,0,0,w,h);
+    const dataUrl=canvas.toDataURL('image/jpeg',0.8);
+    uploadedBase64=dataUrl.split(',')[1];
+    uploadedMediaType='image/jpeg';
+    const sizeKB=Math.round(uploadedBase64.length*3/4/1024);
+    document.getElementById('previewImg').src=dataUrl;
+    document.getElementById('previewInfo').textContent=(file.name||'Photo')+' · '+sizeKB+'KB'+(w<img.width?' (resized)':'');
     document.getElementById('photoPreview').classList.add('visible');
-    document.getElementById('photoBtn').classList.add('has-photo');
+    document.getElementById('cameraBtn').classList.add('has-photo');
   };
-  r.readAsDataURL(file);
+  img.onerror=()=>{
+    URL.revokeObjectURL(url);
+    const r=new FileReader();
+    r.onload=e=>{
+      uploadedBase64=e.target.result.split(',')[1];
+      uploadedMediaType=file.type||'image/jpeg';
+      document.getElementById('previewImg').src=e.target.result;
+      document.getElementById('previewInfo').textContent=(file.name||'Photo')+' · '+(file.size/1024).toFixed(0)+'KB';
+      document.getElementById('photoPreview').classList.add('visible');
+      document.getElementById('cameraBtn').classList.add('has-photo');
+    };
+    r.readAsDataURL(file);
+  };
+  img.src=url;
 }
 function removePhoto(){
   uploadedBase64=null;uploadedMediaType=null;
   document.getElementById('photoPreview').classList.remove('visible');
-  document.getElementById('photoBtn').classList.remove('has-photo');
-  document.getElementById('photoInput').value='';
+  document.getElementById('cameraBtn').classList.remove('has-photo');
+  document.getElementById('cameraInput').value='';
+  document.getElementById('galleryInput').value='';
 }
 
 // ===== PASTE =====
@@ -663,8 +696,8 @@ function resetAll(){
   document.querySelectorAll('.chip.selected').forEach(c=>c.classList.remove('selected'));
   document.getElementById('textInput').value='';
   document.getElementById('photoPreview').classList.remove('visible');
-  document.getElementById('photoBtn').classList.remove('has-photo');
-  document.getElementById('photoInput').value='';
+  document.getElementById('cameraBtn').classList.remove('has-photo');
+  document.getElementById('cameraInput').value='';document.getElementById('galleryInput').value='';
   document.getElementById('results').classList.remove('visible');
   document.getElementById('results').innerHTML='';
   document.getElementById('loading').classList.remove('visible');
